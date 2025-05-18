@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios"; // Tu instancia Axios con baseURL ya configurada
-import styles from "../assets/styles/login-registro.module.css";
+import api from "../api/axios";
+import styles from "../assets/styles/session.module.css";
 
 function Login() {
   const [correo, setCorreo] = useState("");
@@ -37,43 +37,59 @@ function Login() {
   };
 
   return (
-    <div className={styles.wrapper}>
-      <header>
-        <h1 className={styles.InicioSesion}>INICIAR SESIÓN</h1>
+    <div className={styles.loginWrapper}>
+      <header className={styles.loginHeader}>
+        <h1>INICIAR SESIÓN</h1>
       </header>
-        <div className={styles.loginContent}>
-          <div className={styles.fotoAnahuac} />
-          <div className={styles.containerLogin}>
-            <h2>¡¡BIENVENID@!!</h2>
-            <form onSubmit={handleLogin}>
-              <input
-                type="email"
-                placeholder="user@anahuac.mx"
-                value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={contrasena}
-                onChange={(e) => setContrasena(e.target.value)}
-                required
-              />
-              {error && <p style={{ color: "red" }}>{error}</p>}
-              <div className={styles.buttons}>
-                <a href="/registro">
-                  <button type="button" id="registerBtn">
-                    REGISTRARSE
-                  </button>
-                </a>
-                <button type="submit">SIGUIENTE</button>
-              </div>
-            </form>
-          </div>
+
+      <main className={styles.loginMain}>
+        <div className={styles.loginLogoBackground} />
+        <div className={styles.loginContainer}>
+          <h2>¡¡BIENVENID@!!</h2>
+          <form id="loginForm" onSubmit={handleLogin}>
+            <input
+              type="email"
+              placeholder="user@anahuac.mx"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              required
+              className={styles.loginInputField}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={contrasena}
+              onChange={(e) => setContrasena(e.target.value)}
+              required
+              className={styles.loginInputField}
+            />
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            <div className={styles.loginButtons}>
+              <a href="/registro">
+                <button
+                  type="button"
+                  id="registerBtn"
+                  className={styles.loginActionButton}
+                >
+                  REGISTRARSE
+                </button>
+              </a>
+              <a href="/main">
+                <button
+                  type="submit"
+                  id="SiguienteBtn"
+                  className={styles.loginActionButton}
+                >
+                  SIGUIENTE
+                </button>
+              </a>
+            </div>
+          </form>
         </div>
-      <footer>
-        <p className={styles.note}>
+      </main>
+      
+      <footer className={styles.loginFooter}>
+        <p className={styles.loginNoteText}>
           Recuerda ingresar con tu correo institucional
         </p>
       </footer>

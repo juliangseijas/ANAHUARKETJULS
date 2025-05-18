@@ -1,0 +1,104 @@
+/* productoAjeno.module.css */
+
+/* Aquí englobamos ambas secciones para darles el mismo fondo */
+.productoAjenoSection {
+  background-color: rgba(242, 137, 1, 0.2);
+  /* ocupa todo el alto de su contenedor padre */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor del usuario (nombre + tel) */
+.productoAjenoUserInfo {
+  text-align: center;
+  margin: 2rem;
+}
+
+/* Contenedor principal: dos columnas */
+.productoAjenoContainer {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  align-items: center; /* centra verticalmente */
+  justify-content: center; /* centra horizontalmente si sobra espacio */
+  gap: 2rem;
+  width: 100%; /* ocupa todo el ancho posible */
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+/* Columna izquierda: imagen */
+.productoAjenoImage img {
+  max-width: 600px;
+  width: 100%;
+  height: 400px;
+  border-radius: 10px;
+}
+
+/* Columna derecha: info */
+.productoAjenoInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centra su contenido */
+  text-align: center;
+  max-width: 500px;
+  gap: 0.5rem;
+}
+
+/* Título y precio */
+.productoAjenoTitle {
+  font-size: 1.75rem;
+  margin: 0;
+  color: #333;
+}
+.productoAjenoPrice {
+  font-size: 1.5rem;
+  color: #f28901;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+/* Descripción */
+.productoAjenoDescription {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+}
+
+/* Badge de stock */
+.productoAjenoStock {
+  display: inline-block;
+  background-color: #f28901;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  margin-top: 1rem;
+}
+
+/* Botón de editar producto */
+.productoAjenoEditButton {
+  display: inline-block;
+  margin-top: 1.5rem;
+  background-color: #f28901;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+.productoAjenoEditButton:hover {
+  background-color: #e07900;
+}
+
+/* Responsive: en pantallas estrechas apila en columna */
+@media (max-width: 768px) {
+  .productoAjenoContainer {
+    flex-direction: column;
+  }
+}

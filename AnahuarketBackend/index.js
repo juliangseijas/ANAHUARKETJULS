@@ -5,6 +5,10 @@ const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const multer  = require("multer");
+const storage = multer.memoryStorage();
+const upload  = multer({ storage });
+
 
 const app = express();
 app.use(cors());
@@ -52,43 +56,57 @@ app.get('/api', (req, res) => {
 
 // ruta para searchbar
 app.get('/api/buscar', (req, res) => {
-    const palabraClave = req.query.q || null;
+  const palabraClave = req.query.q || null;
+  const query = 'CALL BuscarProducto(?)';
 
-    const query = 'CALL BuscarProducto(?)';
-    bd.query(query, [palabraClave], (err, results) => {
-        if (err) {
-            console.error('Error al buscar productos:', err);
-            return res.status(500).json({ error: 'Error del servidor' });
-        }
-        // results[0] contiene el resultado de la llamada al procedimiento
-        res.json(results[0]);
-    });
+  bd.query(query, [palabraClave], (err, results) => {
+    if (err) {
+      console.error('Error al buscar productos:', err);
+      return res.status(500).json({ error: 'Error del servidor' });
+    }
+
+    // results[0] contiene el array de productos
+    const productos = results[0].map(p => ({
+      ...p,
+      fotoProducto: p.fotoProducto ? p.fotoProducto.toString('base64') : null
+    }));
+
+    res.json(productos);
+  });
 });
 
 
 // Obtener todos los productos con nombre del vendedor
 app.get('/api/producto', (req, res) => {
-    const query = `
-        SELECT 
-            p.idProducto,
-            p.nombreProducto,
-            p.precio,
-            p.descripcion,
-            p.fotoProducto,
-            u.Nombre AS nombreVendedor
-        FROM Producto p
-        JOIN Usuarios u ON p.idUsuario = u.idUsuario
-        WHERE p.isActive = TRUE
-        ORDER BY p.fechaPublicacion DESC
-    `;
+  const query = `
+    SELECT 
+      p.idProducto,
+      p.nombreProducto,
+      p.precio,
+      p.descripcion,
+      p.fotoProducto,
+      p.stock,
+      u.Nombre AS nombreVendedor
+    FROM Producto p
+    JOIN Usuarios u ON p.idUsuario = u.idUsuario
+    WHERE p.isActive = TRUE
+    ORDER BY p.fechaPublicacion DESC
+  `;
 
-    bd.query(query, (err, results) => {
-        if (err) {
-            console.error("Error al obtener productos:", err);
-            return res.status(500).json({ error: 'Error al obtener productos' });
-        }
-        res.json(results);
-    });
+  bd.query(query, (err, results) => {
+    if (err) {
+      console.error("Error al obtener productos:", err);
+      return res.status(500).json({ error: 'Error al obtener productos' });
+    }
+
+    // Mapear cada fotoProducto de Buffer a Base64
+    const productos = results.map(p => ({
+      ...p,
+      fotoProducto: p.fotoProducto ? p.fotoProducto.toString('base64') : null
+    }));
+
+    res.json(productos);
+  });
 });
 
 //  LOGIN 
@@ -210,57 +228,243 @@ app.put('/api/users/:id', async (req, res) => {
 
 // Obtener productos del usuario autenticado
 app.get('/api/producto/usuario/:id', (req, res) => {
-    const idUsuario = req.params.id;
+  const idUsuario = req.params.id;
+  const query = `
+    SELECT 
+      p.idProducto,
+      p.nombreProducto,
+      p.precio,
+      p.descripcion,
+      p.fotoProducto,
+      p.stock
+    FROM Producto p
+    WHERE p.idUsuario = ? AND p.isActive = TRUE
+    ORDER BY p.fechaPublicacion DESC
+  `;
 
-    const query = `
-        SELECT 
-            p.idProducto,
-            p.nombreProducto,
-            p.precio,
-            p.descripcion,
-            p.fotoProducto
-        FROM Producto p
-        WHERE p.idUsuario = ? AND p.isActive = TRUE
-        ORDER BY p.fechaPublicacion DESC
-    `;
+  bd.query(query, [idUsuario], (err, results) => {
+    if (err) {
+      console.error("Error al obtener productos del usuario:", err);
+      return res.status(500).json({ error: 'Error del servidor' });
+    }
 
-    bd.query(query, [idUsuario], (err, results) => {
-        if (err) {
-            console.error("Error al obtener productos del usuario:", err);
-            return res.status(500).json({ error: 'Error del servidor' });
-        }
-        res.json(results);
-    });
+    // Mapear cada fotoProducto de Buffer a Base64
+    const productos = results.map(p => ({
+      ...p,
+      fotoProducto: p.fotoProducto ? p.fotoProducto.toString('base64') : null
+    }));
+
+    res.json(productos);
+  });
 });
+
+// Editar producto
+app.put(
+  '/api/producto/:id',
+  autenticarToken,
+  upload.single('foto'),
+  (req, res) => {
+    const idProducto = req.params.id;
+    const {
+      nombreProducto,
+      descripcion,
+      idCategoria,
+      idDisponibilidad,
+      precio,
+      stock
+    } = req.body;
+    const fotoBuffer = req.file ? req.file.buffer : null;
+
+    // Construir la consulta según si hay foto nueva
+    let query, params;
+    if (fotoBuffer) {
+      query = `
+        UPDATE Producto
+        SET
+          nombreProducto = ?,
+          descripcion = ?,
+          idCategoria = ?,
+          idDisponibilidad = ?,
+          precio = ?,
+          stock = ?,
+          fotoProducto = ?
+        WHERE idProducto = ? AND idUsuario = ? AND isActive = TRUE
+      `;
+      params = [
+        nombreProducto,
+        descripcion,
+        idCategoria,
+        idDisponibilidad,
+        precio,
+        stock,
+        fotoBuffer,
+        idProducto,
+        req.usuario.idUsuario
+      ];
+    } else {
+      query = `
+        UPDATE Producto
+        SET
+          nombreProducto = ?,
+          descripcion = ?,
+          idCategoria = ?,
+          idDisponibilidad = ?,
+          precio = ?,
+          stock = ?
+        WHERE idProducto = ? AND idUsuario = ? AND isActive = TRUE
+      `;
+      params = [
+        nombreProducto,
+        descripcion,
+        idCategoria,
+        idDisponibilidad,
+        precio,
+        stock,
+        idProducto,
+        req.usuario.idUsuario
+      ];
+    }
+
+    bd.query(query, params, (err, result) => {
+      if (err) {
+        console.error('Error al actualizar producto:', err);
+        return res.status(500).json({ error: 'Error al actualizar producto' });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Producto no encontrado o sin permisos' });
+      }
+      res.json({ mensaje: 'Producto actualizado exitosamente' });
+    });
+  }
+);
 
 // Obtener un solo producto por ID al seleccionar en home
 app.get('/api/producto/:id', (req, res) => {
-    const idProducto = req.params.id;
+  const idProducto = req.params.id;
+  const query = `
+    SELECT 
+      p.idProducto,
+      p.nombreProducto,
+      p.precio,
+      p.descripcion,
+      p.fotoProducto,
+      p.stock,
+      u.telefono AS telefono,
+      u.Nombre AS nombreVendedor
+    FROM Producto p
+    JOIN Usuarios u ON p.idUsuario = u.idUsuario
+    WHERE p.idProducto = ? AND p.isActive = TRUE
+  `;
 
-    const query = `
-        SELECT 
-            p.idProducto,
-            p.nombreProducto,
-            p.precio,
-            p.descripcion,
-            p.fotoProducto,
-            u.Nombre AS nombreVendedor
-        FROM Producto p
-        JOIN Usuarios u ON p.idUsuario = u.idUsuario
-        WHERE p.idProducto = ? AND p.isActive = TRUE
-    `;
+  bd.query(query, [idProducto], (err, results) => {
+    if (err) {
+      console.error("Error al obtener producto por ID:", err);
+      return res.status(500).json({ error: 'Error del servidor' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
 
-    bd.query(query, [idProducto], (err, results) => {
-        if (err) {
-            console.error("Error al obtener producto por ID:", err);
-            return res.status(500).json({ error: 'Error del servidor' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        res.json(results[0]);
-    });
+    // Convertir Buffer a Base64
+    const producto = results[0];
+    producto.fotoProducto = producto.fotoProducto
+      ? producto.fotoProducto.toString('base64')
+      : null;
+
+    res.json(producto);
+  });
 });
+
+// Listar categorías
+app.get("/api/categorias", (req, res) => {
+  bd.query(
+    "SELECT idCategoria, NombreCategoria FROM Categorias",
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "Error al listar categorías" });
+      res.json(results);
+    }
+  );
+});
+
+// Listar disponibilidades
+app.get("/api/disponibilidad", (req, res) => {
+  bd.query(
+    "SELECT idDisponibilidad, NombreDisponibilidad FROM Disponibilidad",
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "Error al listar disponibilidades" });
+      res.json(results);
+    }
+  );
+});
+
+// Crear producto con imagen
+app.post(
+  "/api/producto",
+  autenticarToken,
+  upload.single("foto"),
+  (req, res) => {
+    const idUsuario = req.usuario.idUsuario;
+    const {
+      nombreProducto,
+      descripcion,
+      idCategoria,
+      precio,
+      idDisponibilidad,
+      stock
+    } = req.body;
+    const fotoBuffer = req.file?.buffer || null;
+
+    const insert = `
+      INSERT INTO Producto
+        (idUsuario, nombreProducto, descripcion, idCategoria, precio, idDisponibilidad, stock, fotoProducto)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    bd.query(
+      insert,
+      [
+        idUsuario,
+        nombreProducto,
+        descripcion,
+        idCategoria,
+        precio,
+        idDisponibilidad,
+        stock,
+        fotoBuffer
+      ],
+      (err, result) => {
+        if (err) {
+          console.error("Error al insertar producto:", err);
+          return res.status(500).json({ error: "No se pudo guardar el producto" });
+        }
+        res.status(201).json({ mensaje: "Producto guardado", idProducto: result.insertId });
+      }
+    );
+  }
+);
+
+// Listar productos por categoría (usando tu procedimiento BuscarProductosPorIdCategoria)
+app.get(
+  "/api/producto/categoria/:idCategoria",
+  autenticarToken,  // si quieres que solo usuarios autenticados puedan verlos
+  (req, res) => {
+    const idCat = parseInt(req.params.idCategoria, 10);
+    const query = "CALL BuscarProductosPorIdCategoria(?)";
+
+    bd.query(query, [idCat], (err, results) => {
+      if (err) {
+        console.error("Error al buscar por categoría:", err);
+        return res.status(500).json({ error: "Error del servidor" });
+      }
+      // results[0] es el array de filas devuelto por el SELECT interno
+      const productos = results[0].map((p) => ({
+        ...p,
+        fotoProducto: p.fotoProducto ? p.fotoProducto.toString("base64") : null,
+      }));
+      res.json(productos);
+    });
+  }
+);
+
 
 
 // Documentación Swagger
@@ -285,6 +489,6 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Iniciar servidor
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`Servidor corriendo en puerto ${port}`);
 });

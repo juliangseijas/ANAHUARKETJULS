@@ -1,0 +1,92 @@
+/* home.module.css */
+
+/* Grid de productos */
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Tarjeta individual */
+.productCard {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: box-shadow 0.3s ease;
+}
+.productCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Imagen dentro de la tarjeta */
+.productImage img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+}
+
+/* Info (vendedor, título, precio) */
+.productInfo {
+  flex-grow: 1;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.seller {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.productTitle {
+  font-size: 1.1rem;
+  margin: 0.25rem 0;
+}
+
+.price {
+  color: #F28901;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.categoriesBar {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #fff;
+  overflow-x: auto;
+  /* sombra ligera para destacar */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.categoryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.categoryItem:hover {
+  color: #f28901;
+}
+
+.categoryIcon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.25rem;
+  fill: #f28901;
+}

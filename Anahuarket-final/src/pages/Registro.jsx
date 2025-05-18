@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import styles from "../assets/styles/login-registro.module.css";
+import styles from "../assets/styles/session.module.css";
 
 function Registro() {
   const navigate = useNavigate();
@@ -55,54 +55,71 @@ function Registro() {
   };
 
   return (
-    <div className={styles.wrapper}>
-      <header>
-        <h1 className={styles.InicioSesion}>REGISTRATE</h1>
+    <div className={styles.loginWrapper}>
+      <header className={styles.loginHeader}>
+        <h1>REGISTRATE</h1>
       </header>
-      <main>
-        <div className={styles.loginContent}>
-          <div className={styles.fotoAnahuac} />
-          <div className={styles.containerLogin}>
-            <h2>¡¡BIENVENID@!!</h2>
-            <form onSubmit={handleRegistro}>
-              <input
-                type="text"
-                placeholder="Nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                required
-              />
-              <input
-                type="email"
-                placeholder="user@anahuac.mx"
-                value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={contrasena}
-                onChange={(e) => setContrasena(e.target.value)}
-                required
-              />
-              <input
-                type="tel"
-                placeholder="Teléfono"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-                required
-              />
-              <div className={styles.botonRegistroSiguiente}>
-                <button type="submit">SIGUIENTE</button>
-              </div>
-            </form>
-            {mensaje && <p>{mensaje}</p>}
-          </div>
+
+      <main className={styles.loginMain}>
+        <div className={styles.loginLogoBackground} />
+        <div className={styles.loginContainer}>
+          <h2>¡¡BIENVENID@!!</h2>
+
+          <form onSubmit={handleRegistro}>
+            <input
+              type="text"
+              placeholder="Nombre completo"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              className={styles.loginInputField}
+            />
+            <input
+              type="email"
+              placeholder="user@anahuac.mx"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              required
+              className={styles.loginInputField}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={contrasena}
+              onChange={(e) => setContrasena(e.target.value)}
+              required
+              className={styles.loginInputField}
+            />
+            <input
+              type="tel"
+              placeholder="Teléfono"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              required
+              className={styles.loginInputField}
+            />
+
+            <div className={styles.loginButtons}>
+              <a href="/">
+                <button
+                  type="button"
+                  id="LogInBtn"
+                  className={styles.loginActionButton}
+                >
+                  LOG IN
+                </button>
+              </a>
+
+              <button type="submit" className={styles.loginActionButton}>
+                SIGUIENTE
+              </button>
+            </div>
+          </form>
+          {mensaje && <p>{mensaje}</p>}
         </div>
       </main>
-      <footer>
-        <p className={styles.note}>
+      <footer className={styles.loginFooter}>
+        <p className={styles.loginNoteText}>
           Recuerda registrarte con tu correo institucional
         </p>
       </footer>
