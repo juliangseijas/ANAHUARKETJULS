@@ -1,5 +1,9 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import "./assets/styles/index.css";
+
+import Header from "./layout/Header";
+import Footer from "./layout/Footer";
+
 import Login from "./pages/LogIn";
 import Registro from "./pages/Registro";
 import Home from "./pages/Home";
@@ -12,19 +16,19 @@ import AgregarProducto from "./pages/AgregarProducto";
 import EditarProducto from "./pages/EditarProducto";
 import Categoria from "./pages/categoria";
 
+function AppLayout() {
+  const location = useLocation();
+  const hideHeader = location.pathname === "/" || location.pathname === "/registro";
 
-
-
-function App() {
   return (
-    <BrowserRouter>
+    <>
+      {!hideHeader && <Header />}
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/home" element={<Home />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/producto/:id" element={<ProductoAjeno />} />
-        <Route path="/productoPropio" element={<ProductoPropio/>}/>
         <Route path="/producto-propio/:id" element={<ProductoPropio />} />
         <Route path="/resultados" element={<ResultadosBusqueda />} />
         <Route path="/editar-perfil" element={<EditarPerfil />} />
@@ -32,6 +36,15 @@ function App() {
         <Route path="/editar-producto/:id" element={<EditarProducto />} />
         <Route path="/categoria/:idCategoria" element={<Categoria />} />
       </Routes>
+      <Footer />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppLayout />
     </BrowserRouter>
   );
 }

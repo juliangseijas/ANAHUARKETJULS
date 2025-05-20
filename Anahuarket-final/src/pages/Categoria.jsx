@@ -47,8 +47,6 @@ export default function Categoria() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
-
       <main className={layoutStyles.mainContent}>
         <h2 style={{ textAlign: "center", margin: "1rem 0" }}>
           {categoriaNombre || `Categoría ${idCategoria}`}
@@ -99,8 +97,6 @@ export default function Categoria() {
           </section>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

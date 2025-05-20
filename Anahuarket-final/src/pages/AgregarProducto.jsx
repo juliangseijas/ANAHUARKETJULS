@@ -62,7 +62,6 @@ export default function AgregarProducto() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
       <main className={layoutStyles.mainContent}>
         <div className={styles.editContainer}>
           <div className={styles.editLogoBackground} />
@@ -166,7 +165,6 @@ export default function AgregarProducto() {
           </form>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

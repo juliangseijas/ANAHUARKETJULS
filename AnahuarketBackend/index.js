@@ -48,13 +48,40 @@ function autenticarToken(req, res, next) {
     });
 }
 
+
 // Ruta de prueba
+/**
+ * @swagger
+ * /api:
+ *   get:
+ *     summary: Ruta de prueba de conexión con la API
+ *     tags: [Pruebas]
+ *     responses:
+ *       200:
+ *         description: Conexión exitosa con la API
+ */
 app.get('/api', (req, res) => {
     res.send('Bienvenido a la API de Anahuarket');
 });
 
 
 // ruta para searchbar
+/**
+ * @swagger
+ * /api/buscar:
+ *   get:
+ *     summary: Buscar productos por palabra clave
+ *     tags: [Productos]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Palabra clave para buscar productos
+ *     responses:
+ *       200:
+ *         description: Lista de productos coincidentes
+ */
 app.get('/api/buscar', (req, res) => {
   const palabraClave = req.query.q || null;
   const query = 'CALL BuscarProducto(?)';
@@ -76,7 +103,17 @@ app.get('/api/buscar', (req, res) => {
 });
 
 
-// Obtener todos los productos con nombre del vendedor
+// Obtener todos los productos en Home
+/**
+ * @swagger
+ * /api/producto:
+ *   get:
+ *     summary: Obtener todos los productos disponibles
+ *     tags: [Productos]
+ *     responses:
+ *       200:
+ *         description: Lista de productos
+ */
 app.get('/api/producto', (req, res) => {
   const query = `
     SELECT 
@@ -88,8 +125,8 @@ app.get('/api/producto', (req, res) => {
       p.stock,
       u.Nombre AS nombreVendedor
     FROM Producto p
-    JOIN Usuarios u ON p.idUsuario = u.idUsuario
-    WHERE p.isActive = TRUE
+    JOIN Usuarios u ON p.idUsuario = u.idUsuario  
+    WHERE p.isActive = TRUE AND p.idDisponibilidad != 2
     ORDER BY p.fechaPublicacion DESC
   `;
 
@@ -109,7 +146,30 @@ app.get('/api/producto', (req, res) => {
   });
 });
 
+
+
 //  LOGIN 
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Autenticación de usuarios
+ *     tags: [Autenticación]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               correo:
+ *                 type: string
+ *               contrasena:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuario autenticado correctamente
+ */
 app.post('/api/auth/login', (req, res) => {
     const { correo, contrasena } = req.body;
     const query = 'SELECT * FROM Usuarios WHERE Correo = ? AND isActive = TRUE';
@@ -155,7 +215,33 @@ app.post('/api/auth/login', (req, res) => {
     });
 });
 
+
 // Registro
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Registro de nuevos usuarios
+ *     tags: [Autenticación]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               correo:
+ *                 type: string
+ *               contrasena:
+ *                 type: string
+ *               telefono:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuario registrado correctamente
+ */
 app.post('/api/auth/register', async (req, res) => {
     const { nombre, correo, contrasena, telefono } = req.body;
 
@@ -181,6 +267,22 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Obtener perfil de usuario por ID
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Obtener perfil de usuario por ID
+ *     tags: [Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Información del usuario
+ */
 app.get('/api/users/:id', (req, res) => {
     const { id } = req.params;
     const query = 'SELECT idUsuario, nombre, correo, telefono FROM Usuarios WHERE idUsuario = ? AND isActive = TRUE';
@@ -194,6 +296,18 @@ app.get('/api/users/:id', (req, res) => {
 });
 
 // Obtener perfil autenticado
+/**
+ * @swagger
+ * /api/users/me:
+ *   get:
+ *     summary: Obtener perfil del usuario autenticado
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Información del usuario autenticado
+ */
 app.get('/api/users/me', autenticarToken, (req, res) => {
     const idUsuario = req.usuario.idUsuario;
     const query = 'SELECT idUsuario, nombre, correo, telefono FROM Usuarios WHERE idUsuario = ? AND isActive = TRUE';
@@ -207,26 +321,92 @@ app.get('/api/users/me', autenticarToken, (req, res) => {
 });
 
 // Actualizar perfil
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Actualizar perfil de usuario
+ *     tags: [Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               telefono:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado correctamente
+ */
 app.put('/api/users/:id', async (req, res) => {
-    const { id } = req.params;
-    const { nombre, correo, telefono, contrasena } = req.body;
+  const { id } = req.params;
+  const { nombre, telefono } = req.body;
 
-    let hashedPassword = contrasena;
-    if (contrasena) {
-        hashedPassword = await bcrypt.hash(contrasena, 10);
+  // Validar que venga al menos un campo a actualizar
+  if (!nombre && !telefono) {
+    return res.status(400).json({ error: 'Nada que actualizar' });
+  }
+
+  // Armar dinámicamente el SET
+  const updates = [];
+  const params  = [];
+  if (nombre) {
+    updates.push('Nombre = ?');
+    params.push(nombre);
+  }
+  if (telefono) {
+    updates.push('Telefono = ?');
+    params.push(telefono);
+  }
+
+  // Terminar con el WHERE
+  const sql = `
+    UPDATE Usuarios
+      SET ${updates.join(', ')}
+    WHERE idUsuario = ? AND isActive = TRUE
+  `;
+  params.push(id);
+
+  bd.query(sql, params, (err, result) => {
+    if (err) {
+      console.error('Error al actualizar perfil:', err);
+      return res.status(500).json({ error: 'Error al actualizar perfil' });
     }
-
-    const query = 'UPDATE Usuarios SET nombre = ?, correo = ?, telefono = ?, contrasena = ? WHERE idUsuario = ? AND isActive = TRUE';
-
-    bd.query(query, [nombre, correo, telefono, hashedPassword, id], (err, results) => {
-        if (err) return res.status(500).json({ error: 'Error del servidor' });
-        if (results.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
-
-        res.json({ mensaje: 'Perfil actualizado exitosamente' });
-    });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.json({ mensaje: 'Perfil actualizado exitosamente' });
+  });
 });
 
+
 // Obtener productos del usuario autenticado
+/**
+ * @swagger
+ * /api/producto/usuario/{id}:
+ *   get:
+ *     summary: Obtener productos por ID de usuario
+ *     tags: [Productos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de productos del usuario
+ */
 app.get('/api/producto/usuario/:id', (req, res) => {
   const idUsuario = req.params.id;
   const query = `
@@ -259,6 +439,46 @@ app.get('/api/producto/usuario/:id', (req, res) => {
 });
 
 // Editar producto
+/**
+ * @swagger
+ * /api/producto/{id}:
+ *   put:
+ *     summary: Editar un producto existente
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombreProducto:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *               idCategoria:
+ *                 type: integer
+ *               idDisponibilidad:
+ *                 type: integer
+ *               precio:
+ *                 type: number
+ *               stock:
+ *                 type: integer
+ *               foto:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Producto actualizado correctamente
+ */
 app.put(
   '/api/producto/:id',
   autenticarToken,
@@ -339,6 +559,22 @@ app.put(
 );
 
 // Obtener un solo producto por ID al seleccionar en home
+/**
+ * @swagger
+ * /api/producto/{id}:
+ *   get:
+ *     summary: Obtener un producto por ID
+ *     tags: [Productos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalles del producto
+ */
 app.get('/api/producto/:id', (req, res) => {
   const idProducto = req.params.id;
   const query = `
@@ -376,6 +612,22 @@ app.get('/api/producto/:id', (req, res) => {
 });
 
 // Listar categorías
+/**
+ * @swagger
+ * /api/producto/categoria/{idCategoria}:
+ *   get:
+ *     summary: Obtener productos por categoría
+ *     tags: [Productos]
+ *     parameters:
+ *       - in: path
+ *         name: idCategoria
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de productos por categoría
+ */
 app.get("/api/categorias", (req, res) => {
   bd.query(
     "SELECT idCategoria, NombreCategoria FROM Categorias",
@@ -387,6 +639,16 @@ app.get("/api/categorias", (req, res) => {
 });
 
 // Listar disponibilidades
+/**
+ * @swagger
+ * /api/disponibilidad:
+ *   get:
+ *     summary: Obtener todas las disponibilidades
+ *     tags: [Catálogos]
+ *     responses:
+ *       200:
+ *         description: Lista de disponibilidades
+ */
 app.get("/api/disponibilidad", (req, res) => {
   bd.query(
     "SELECT idDisponibilidad, NombreDisponibilidad FROM Disponibilidad",
@@ -398,6 +660,40 @@ app.get("/api/disponibilidad", (req, res) => {
 });
 
 // Crear producto con imagen
+/**
+ * @swagger
+ * /api/producto:
+ *   post:
+ *     summary: Crear un nuevo producto
+ *     tags: [Productos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombreProducto:
+ *                 type: string
+ *               descripcion:
+ *                 type: string
+ *               idCategoria:
+ *                 type: integer
+ *               precio:
+ *                 type: number
+ *               idDisponibilidad:
+ *                 type: integer
+ *               stock:
+ *                 type: integer
+ *               foto:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Producto creado correctamente
+ */
 app.post(
   "/api/producto",
   autenticarToken,
@@ -443,6 +739,22 @@ app.post(
 );
 
 // Listar productos por categoría (usando tu procedimiento BuscarProductosPorIdCategoria)
+/**
+ * @swagger
+ * /api/producto/categoria/{idCategoria}:
+ *   get:
+ *     summary: Obtener productos por categoría
+ *     tags: [Productos]
+ *     parameters:
+ *       - in: path
+ *         name: idCategoria
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de productos por categoría
+ */
 app.get(
   "/api/producto/categoria/:idCategoria",
   autenticarToken,  // si quieres que solo usuarios autenticados puedan verlos
@@ -482,7 +794,7 @@ const swaggerOptions = {
             },
         ],
     },
-    apis: ['./server.js'],
+    apis: ['./index.js'],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);

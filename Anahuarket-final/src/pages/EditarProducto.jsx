@@ -84,7 +84,6 @@ export default function EditarProducto() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
       <main className={layoutStyles.mainContent}>
         <div className={styles.editContainer}>
           <div className={styles.editLogoBackground} />
@@ -191,7 +190,6 @@ export default function EditarProducto() {
           </form>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

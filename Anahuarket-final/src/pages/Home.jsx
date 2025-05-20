@@ -37,8 +37,6 @@ export default function Home() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
-
       <main className={layoutStyles.mainContent}>
         {/* Barra de categorías (solo texto) */}
         <nav className={homeStyles.categoriesBar}>
@@ -97,8 +95,6 @@ export default function Home() {
           }
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

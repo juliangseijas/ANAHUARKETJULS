@@ -49,8 +49,6 @@ export default function EditarPerfil() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
-
       <main className={layoutStyles.mainContent}>
         <div className={styles.editContainer}>
           <div className={styles.editLogoBackground} />
@@ -98,7 +96,6 @@ export default function EditarPerfil() {
           </form>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

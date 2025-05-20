@@ -33,7 +33,6 @@ export default function ProductoAjeno() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
       <main className={layoutStyles.mainContent}>
         <div className={productStyles.productoAjenoSection}>
           <div className={productStyles.productoAjenoContainer}>
@@ -68,7 +67,6 @@ export default function ProductoAjeno() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

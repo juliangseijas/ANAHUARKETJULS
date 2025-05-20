@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../layout/Header";
 import Footer from "../layout/Footer";
 import homeStyles from "../assets/styles/home.module.css";
 import layoutStyles from "../assets/styles/PageLayout.module.css"
@@ -18,7 +17,6 @@ function ResultadosBusqueda() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
       <main className={layoutStyles.mainContent}>
         <section className={homeStyles.productsGrid}>
           {resultados.length === 0 ? (
@@ -55,7 +53,6 @@ function ResultadosBusqueda() {
           )}
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

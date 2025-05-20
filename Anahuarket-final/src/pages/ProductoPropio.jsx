@@ -31,8 +31,6 @@ function ProductoPropio() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
-
       <main className={layoutStyles.mainContent}>
         <section className={productStyles.productoAjenoSection}>
           <div className={productStyles.productoAjenoContainer}>
@@ -70,8 +68,6 @@ function ProductoPropio() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

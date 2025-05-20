@@ -26,7 +26,6 @@ function Perfil() {
 
   return (
     <div className={layoutStyles.wrapper}>
-      <Header />
       <main className={layoutStyles.mainContent}>
         <section className={perfilStyles.perfilSection}>
           <div className={perfilStyles.perfilName}>
@@ -70,8 +69,6 @@ function Perfil() {
           ))}
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }
